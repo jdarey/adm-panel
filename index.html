@@ -57,7 +57,9 @@
             inset: 0;
             z-index: 0;
             pointer-events: none;
-            background: radial-gradient(circle at 50% -10%, rgba(255,255,255,0.08), transparent 45%);
+            background: 
+                radial-gradient(circle at 50% -10%, rgba(255,255,255,0.08), transparent 45%),
+                radial-gradient(circle at 80% 20%, rgba(120,120,255,0.04), transparent 25%);
             filter: blur(90px);
         }
 
@@ -168,16 +170,47 @@
 
         .tabs {
             display: flex;
-            gap: 10px;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .tabs-left {
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-bar {
+            position: relative;
+            width: 250px;
+        }
+
+        .search-bar input {
+            margin: 0;
+            padding-left: 36px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 999px;
+            height: 40px;
+        }
+
+        .search-bar i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            font-size: 0.85rem;
         }
 
         .tab {
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid var(--border);
             color: var(--muted);
-            padding: 10px 20px;
-            border-radius: var(--radius-sm);
+            padding: 8px 20px;
+            border-radius: 999px;
+            transition: all 0.3s ease;
         }
 
         .tab:hover {
@@ -313,6 +346,135 @@
             margin-left: auto;
             font-size: 0.95rem;
         }
+
+        .faceit-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            margin-left: 8px;
+            vertical-align: middle;
+            transition: transform 0.2s ease, filter 0.2s ease;
+            filter: grayscale(1) opacity(0.6);
+        }
+        .faceit-icon:hover {
+            transform: translateY(-2px) scale(1.1);
+            filter: grayscale(0) opacity(1);
+        }
+        .faceit-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* --- MODAL --- */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: rgba(15, 15, 15, 0.95);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 32px;
+            width: 100%;
+            max-width: 500px;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-content h3 {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            margin-bottom: 24px;
+        }
+
+        .modal-content label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .modal-content textarea {
+            width: 100%;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: #0c0c0c;
+            color: #fff;
+            font-family: var(--font);
+            font-size: 0.95rem;
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .modal-content textarea:focus {
+            outline: none;
+            border-color: var(--border2);
+            background: #111;
+        }
+
+        .modal-content .actions {
+            margin-top: 24px;
+            justify-content: flex-end;
+        }
+
+        .modal-content .btn-primary {
+            background: #fff;
+            color: #000;
+            border: 0;
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .modal-content .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            border: 1px solid var(--border);
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-edit {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #60a5fa;
+        }
+
+        .btn-edit:hover {
+            background: #3b82f6;
+            color: #fff;
+        }
     </style>
 </head>
 
@@ -336,13 +498,70 @@
         </div>
 
         <div class="tabs">
-            <button id="tab-pending" class="tab active" onclick="setTab('pending')">Pending</button>
-            <button id="tab-approved" class="tab" onclick="setTab('approved')">Approved</button>
-            <button id="tab-rejected" class="tab" onclick="setTab('rejected')">Rejected</button>
+            <div class="tabs-left">
+                <button id="tab-pending" class="tab active" onclick="setTab('pending')">Pending</button>
+                <button id="tab-approved" class="tab" onclick="setTab('approved')">Approved</button>
+                <button id="tab-rejected" class="tab" onclick="setTab('rejected')">Rejected</button>
+            </div>
+            <div class="search-bar">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Szukaj opinii..." oninput="handleSearch()">
+            </div>
         </div>
 
         <div id="list">Materiały się ładują...</div>
     </div>
+    <!-- MODAL EDYCJI -->
+    <div id="editModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>✏️ Edytuj opinię</h3>
+            
+            <input type="hidden" id="editId">
+            
+            <label>Nick gracza</label>
+            <input type="text" id="editNick" placeholder="Nick">
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                <div style="flex: 2;">
+                    <label>Usługa</label>
+                    <input type="text" id="editService" placeholder="np. COACHING PREMIUM" style="margin-bottom: 0;">
+                </div>
+                <div style="flex: 1;">
+                    <label>Ocena</label>
+                    <input type="number" id="editRating" placeholder="5" min="1" max="5" style="margin-bottom: 0;">
+                </div>
+            </div>
+            
+            <label>Krótki highlight opinii</label>
+            <input type="text" id="editHighlight" placeholder="np. +530 ELO w 3 tygodnie">
+
+            <label>Treść opinii</label>
+            <textarea id="editReview" placeholder="Opinia klienta..."></textarea>
+            
+            <label>Link do Faceit</label>
+            <input type="url" id="editFaceitLink" placeholder="https://www.faceit.com/en/players/...">
+            
+            <label>Ilość sesji</label>
+            <input type="number" id="editSessions" placeholder="1">
+            
+            <div style="display: flex; gap: 10px;">
+                <div style="flex: 1;">
+                    <label>Start ELO</label>
+                    <input type="number" id="editStartElo">
+                </div>
+                <div style="flex: 1;">
+                    <label>Koniec ELO</label>
+                    <input type="number" id="editEndElo">
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn-secondary" onclick="closeEditModal()">Anuluj</button>
+                <button class="btn-primary" onclick="saveEdit()">Zapisz</button>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
@@ -361,6 +580,7 @@ const auth = firebase.auth();
 
 let currentTab = 'pending';
 let isInitialLoad = true; // Flaga chroniąca przed powiadomieniami o starych opiniach przy włączaniu strony
+let currentReviewsMap = {}; // Do przetrzymywania aktualnie załadowanych opinii dla modalu
 
 // --- FUNKCJA NTFY (PUSH NA TELEFON) ---
 function ntfy(title, msg) {
@@ -421,12 +641,27 @@ function startLiveListening() {
                     
                     // Jeśli to nowa opinia oczekująca i strona nie jest w trakcie pierwszego włączania
                     if (data.status === 'pending' && !isInitialLoad) {
-                        const progres = (data.koniecElo || 0) - (data.startElo || 0);
-                        ntfy(
-                            `🔔 Nowa opinia od ${data.nick || "Anonim"}!`,
-                            `Klient dodał opinię (${data.service || "START"}). Progres: +${progres} ELO. Wejdź do panelu, aby ją zaakceptować.`
-                        );
-                    }
+
+    const reviewData = {
+        nick: data.nick || "Anonim",
+        service: data.service || "START",
+        startElo: Number(data.startElo || 0),
+        endElo: Number(data.endElo || 0),
+        rating: Number(data.rating || 5),
+        review: data.review || "Brak treści"
+    };
+
+    const progres = reviewData.endElo - reviewData.startElo;
+
+    // NTFY
+    ntfy(
+        `Nowa opinia od ${reviewData.nick}`,
+        `Klient dodał opinię (${reviewData.service}). Progres: +${progres} ELO`
+    );
+
+    // DISCORD WEBHOOK
+    sendDiscordNotification(reviewData);
+}
                 }
             });
 
@@ -455,20 +690,44 @@ function setTab(tabName) {
     });
 }
 
+let searchTimeout;
+
+function handleSearch() {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    db.collection("testimonials").orderBy("createdAt", "desc").get().then(renderData);
+  }, 300);
+}
+
 function renderData(snapshot) {
     const listDiv = document.getElementById("list");
+    const searchTerm = document.getElementById("searchInput")?.value.toLowerCase().trim() || "";
     let html = "";
     let count = 0;
 
     snapshot.forEach(doc => {
         const t = doc.data();
+        
         // Filtrujemy tylko dokumenty odpowiadające obecnej zakładce
         if (t.status !== currentTab) return;
         
+        // Filtrujemy po wyszukiwarce
+        if (searchTerm) {
+            const nick = (t.nick || "anonim").toLowerCase();
+            const reviewText = (t.review || "").toLowerCase();
+            if (!nick.includes(searchTerm) && !reviewText.includes(searchTerm)) {
+                return;
+            }
+        }
+        
         count++;
         const id = doc.id;
+        
+        // Zapis do obiektu tymczasowego dla szybkiego odczytu przez modal
+        currentReviewsMap[id] = t;
+        
         const start = Number(t.startElo ?? 0);
-        const koniec = Number(t.koniecElo ?? 0);
+        const koniec = Number(t.endElo ?? 0);
         const progres = koniec - start;
 
         let starsStr = "";
@@ -479,17 +738,19 @@ function renderData(snapshot) {
         html += `
             <div class="card">
                 <div style="display: flex; align-items: center;">
-                    <strong>${t.nick || "Anonim"}</strong>
+                    <strong>${t.nick || "Anonim"} ${t.faceitLink ? `<a href="${t.faceitLink}" target="_blank" class="faceit-icon" title="Zobacz profil Faceit"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/faceit.svg" alt="Faceit" style="width:20px; filter: invert(100%) sepia(100%) saturate(0%) hue-rotate(0deg);"></a>` : ''}</strong>
                     <div class="stars">${starsStr}</div>
                 </div>
                 <div class="meta">
                     <span class="service-badge">${t.service || "Brak"}</span>
+                    <span class="elo-tag">Sesje: <strong>${t.sessions || 1}</strong></span>
                     <span class="elo-tag">Start: <strong>${start}</strong></span>
                     <span class="elo-tag">Koniec: <strong>${koniec}</strong></span>
                     <span class="elo-tag" style="color: #4ade80;">Progres: <strong>+${progres} ELO</strong></span>
                 </div>
                 <div class="review">"${t.review || "Brak treści."}"</div>
                 <div class="actions">
+                    <button class="btn-edit" onclick="openEditModal('${id}')"><i class="fa-solid fa-pen"></i> Edit</button>
                     ${currentTab === 'pending' ? `<button class="approve" onclick="updateStatus('${id}', 'approved')"><i class="fa-solid fa-check"></i> Approve</button>` : ''}
                     ${currentTab === 'pending' ? `<button class="reject" onclick="updateStatus('${id}', 'rejected')"><i class="fa-solid fa-ban"></i> Reject</button>` : ''}
                     <button class="delete" onclick="deleteReview('${id}')"><i class="fa-solid fa-trash"></i> Delete</button>
@@ -524,6 +785,71 @@ function deleteReview(id) {
     }
 }
 
+// --- MODAL EDYCJI ---
+function openEditModal(id) {
+    const t = currentReviewsMap[id];
+    if (!t) return;
+    
+    document.getElementById("editId").value = id;
+    document.getElementById("editNick").value = t.nick || "";
+    document.getElementById("editService").value = t.service || "";
+    document.getElementById("editRating").value = t.rating || 5;
+    document.getElementById("editHighlight").value = t.highlight || "";
+    document.getElementById("editReview").value = t.review || "";
+    document.getElementById("editFaceitLink").value = t.faceitLink || "";
+    document.getElementById("editSessions").value = t.sessions || 1;
+    document.getElementById("editStartElo").value = t.startElo || 0;
+    document.getElementById("editEndElo").value = t.endElo || 0;
+    
+    document.getElementById("editModal").classList.add("active");
+}
+
+function closeEditModal() {
+    document.getElementById("editModal").classList.remove("active");
+}
+
+function saveEdit() {
+    const id = document.getElementById("editId").value;
+    const nick = document.getElementById("editNick").value.trim();
+    const service = document.getElementById("editService").value.trim();
+    const rating = parseInt(document.getElementById("editRating").value) || 5;
+    const highlight = document.getElementById("editHighlight").value.trim();
+    const review = document.getElementById("editReview").value.trim();
+    const faceitLink = document.getElementById("editFaceitLink").value.trim();
+    const sessions = parseInt(document.getElementById("editSessions").value) || 1;
+    const startElo = parseInt(document.getElementById("editStartElo").value) || 0;
+    const endElo = parseInt(document.getElementById("editEndElo").value) || 0;
+    
+    // Przeliczenie godzin (1 sesja = 2 godziny)
+    const hours = sessions * 2;
+    
+    const btn = document.querySelector(".modal-content .btn-primary");
+    btn.innerText = "Zapisywanie...";
+    btn.disabled = true;
+
+    db.collection("testimonials").doc(id).update({
+        nick: nick,
+        service: service,
+        rating: rating,
+        highlight: highlight,
+        review: review,
+        faceitLink: faceitLink,
+        sessions: sessions,
+        hours: hours,
+        startElo: startElo,
+        endElo: endElo
+    }).then(() => {
+        closeEditModal();
+        btn.innerText = "Zapisz";
+        btn.disabled = false;
+        // Odświeżenie danych wywołane jest automatycznie przez onSnapshot na żywo
+    }).catch(e => {
+        alert("Błąd podczas zapisywania: " + e.message);
+        btn.innerText = "Zapisz";
+        btn.disabled = false;
+    });
+}
+
 // --- ZABEZPIECZONA FUNKCJA FACEIT (WYCISZONA LOKALNIE) ---
 async function loadFaceitElo() {
     try {
@@ -547,6 +873,75 @@ document.addEventListener("DOMContentLoaded", () => {
     loadFaceitElo();
     setInterval(loadFaceitElo, 60000);
 });
+
+// --- FUNKCJA DISCORD WEBHOOK (NAPRAWIONA) ---
+async function sendDiscordNotification(review) {
+
+    const webhookURL = "https://discord.com/api/webhooks/1509331874559037501/20tY7QBr9UmD_XFv_QA3Gqa7rUercZTTCAecLKY325kKJMD_Ip3z0cFOF7Ac-u1z8vnM";
+
+    const progres = review.endElo - review.startElo;
+
+    const payload = {
+        embeds: [
+            {
+                title: "🚨 Nowa opinia klienta",
+                color: 0x8b5cf6, // fiolet premium
+                fields: [
+                    {
+                        name: "👤 Gracz",
+                        value: review.nick || "Anonim",
+                        inline: true
+                    },
+                    {
+                        name: "🎮 Usługa",
+                        value: review.service || "Brak",
+                        inline: true
+                    },
+                    {
+                        name: "⭐ Ocena",
+                        value: "★".repeat(review.rating || 5),
+                        inline: true
+                    },
+                    {
+                        name: "📈 ELO Progress",
+                        value: `\`${review.startElo} → ${review.endElo}\`\n**+${progres} ELO**`,
+                        inline: false
+                    },
+                    {
+                        name: "💬 Opinia",
+                        value: review.review?.slice(0, 1000) || "Brak treści",
+                        inline: false
+                    },
+                    {
+                        name: "🔗 Faceit",
+                        value: review.faceitLink ? `[Profil Faceit](${review.faceitLink})` : "Brak",
+                        inline: false
+                    }
+                ],
+                footer: {
+                    text: "Darey Admin Panel • Live notification"
+                },
+                timestamp: new Date().toISOString()
+            }
+        ]
+    };
+
+    try {
+        const res = await fetch(webhookURL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        });
+
+        console.log("Discord status:", res.status);
+
+    } catch (e) {
+        console.error("[DISCORD ERROR]", e);
+    }
+}
+
 </script>
 
 </body>
