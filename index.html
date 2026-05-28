@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Darey Admin Panel</title>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
+    <!-- Google Fonts & Font Awesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        /* Stylistyka premium zgodna z oryginalną stroną Darey. Coaching */
+        :root {
+            --bg: #060606;
+            --bg2: #0a0a0a;
+            --border: rgba(255, 255, 255, 0.06);
+            --border2: rgba(255, 255, 255, 0.12);
+            --text: #e8e8e8;
+            --muted: #8a8a8a;
+            --radius: 20px;
+            --radius-sm: 12px;
+            --font: "Inter", system-ui, -apple-system, sans-serif;
+            --font-display: "Space Grotesk", sans-serif;
+        }
+
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background: var(--bg);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background: radial-gradient(circle at 50% -10%, rgba(255,255,255,0.08), transparent 45%);
+            filter: blur(90px);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 24px;
+            position: relative;
+            z-index: 2;
+        }
+
+        h2, .tab, .btn, .service-badge, .elo-tag {
+            font-family: var(--font-display);
+        }
+
+        .login {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 40px 32px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            box-shadow: 0 40px 120px rgba(0, 0, 0, 0.6);
+            text-align: center;
+        }
+
+        .login h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            margin-bottom: 24px;
+            color: #fff;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            margin: 10px 0;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: #0c0c0c;
+            color: #fff;
+            font-family: var(--font);
+            font-size: 0.95rem;
+            transition: all 0.25s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--border2);
+            background: #111;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.03);
+        }
+
+        button {
+            padding: 12px 20px;
+            border-radius: var(--radius-sm);
+            border: 0;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.25s ease;
+        }
+
+        .btn {
+            background: #fff;
+            color: #000;
+            width: 100%;
+            margin-top: 12px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            background: #e7e7e7;
+            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.1);
+        }
+
+        .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .top h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: #fff;
+        }
+
+        .top button {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            color: var(--muted);
+        }
+
+        .top button:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: var(--border2);
+            color: #fff;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 32px;
+        }
+
+        .tab {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+        }
+
+        .tab:hover {
+            border-color: var(--border2);
+            color: #fff;
+        }
+
+        .tab.active {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
+        }
+
+        .card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.005) 100%);
+            border: 1px solid var(--border);
+            padding: 28px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--border2);
+            transform: translateY(-2px);
+        }
+
+        .card strong {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            color: #fff;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 16px 0;
+            align-items: center;
+        }
+
+        .elo-tag {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .elo-tag strong {
+            display: inline;
+            font-size: 0.85rem;
+            color: #fff;
+            margin: 0;
+        }
+
+        .service-badge {
+            background: rgba(168, 85, 247, 0.12);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            color: #c084fc;
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .review {
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.6;
+            font-size: 0.95rem;
+            white-space: pre-wrap;
+            background: rgba(255, 255, 255, 0.01);
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            margin-bottom: 20px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .approve {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #4ade80;
+        }
+
+        .approve:hover {
+            background: #22c55e;
+            color: #000;
+        }
+
+        .reject {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
+
+        .reject:hover {
+            background: #ef4444;
+            color: #fff;
+        }
+
+        .delete {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            color: #8a8a8a;
+        }
+
+        .delete:hover {
+            background: #444;
+            color: #fff;
+            border-color: #555;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #list {
+            color: var(--muted);
+        }
+        
+        .stars {
+            color: #facc15;
+            margin-left: auto;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- LOGIN BOX -->
+    <div id="loginBox" class="login">
+        <h2>🔐 Admin Panel</h2>
+        <input id="adminEmail" type="email" placeholder="Email administratora">
+        <input id="adminPassword" type="password" placeholder="Hasło">
+        <button class="btn" onclick="login()">Zaloguj profil</button>
+    </div>
+
+    <!-- PANEL GŁÓWNY -->
+    <div id="panel" class="hidden">
+        <div class="top">
+            <h2>Darey. <span>Dashboard</span></h2>
+            <button onclick="logout()"><i class="fa-solid fa-sign-out-alt"></i> Logout</button>
+        </div>
+
+        <div class="tabs">
+            <button id="tab-pending" class="tab active" onclick="setTab('pending')">Pending</button>
+            <button id="tab-approved" class="tab" onclick="setTab('approved')">Approved</button>
+            <button id="tab-rejected" class="tab" onclick="setTab('rejected')">Rejected</button>
+        </div>
+
+        <div id="list">Materiały się ładują...</div>
+    </div>
+</div>
+
+<script>
+// --- CONFIG FIREBASE ---
+const firebaseConfig = {
+    apiKey: "AIzaSyBNEcNFVu8vycBZjT-hzt-PihwwoIBhsOw",
+    authDomain: "darey-fc9af.firebaseapp.com",
+    projectId: "darey-fc9af"
+};
+
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.firestore();
+const auth = firebase.auth();
+
+let currentTab = 'pending';
+let isInitialLoad = true; // Flaga chroniąca przed powiadomieniami o starych opiniach przy włączaniu strony
+
+// --- FUNKCJA NTFY (PUSH NA TELEFON) ---
+function ntfy(title, msg) {
+    const encodedTitle = "=?utf-8?B?" + btoa(unescape(encodeURIComponent(title))) + "?=";
+    fetch("https://ntfy.sh/darey", {
+        method: "POST",
+        headers: {
+            "Title": encodedTitle,
+            "Priority": "high",
+            "X-Priority": "5"
+        },
+        body: msg
+    }).catch(e => console.error("[NTFY] Błąd:", e));
+}
+
+// --- LOGOWANIE I AUTORYZACJA ---
+function login() {
+    const email = document.getElementById("adminEmail").value.trim();
+    const password = document.getElementById("adminPassword").value;
+
+    auth.signInWithEmailAndPassword(email, password)
+        .catch(error => {
+            alert("Błąd logowania: " + error.message);
+        });
+}
+
+function logout() {
+    auth.signOut();
+}
+
+auth.onAuthStateChanged(user => {
+    const loginBox = document.getElementById("loginBox");
+    const panel = document.getElementById("panel");
+
+    if (user) {
+        loginBox.classList.add("hidden");
+        panel.classList.remove("hidden");
+        startLiveListening(); // Uruchomienie nasłuchiwania bazy na żywo
+    } else {
+        loginBox.classList.remove("hidden");
+        panel.classList.add("hidden");
+    }
+});
+
+// --- LIVE LISTENER (AUTOMATYCZNE POWIADOMIENIA I ODŚWIEŻANIE) ---
+function startLiveListening() {
+    // Słuchamy całej kolekcji od najnowszych
+    db.collection("testimonials")
+        .orderBy("createdAt", "desc")
+        .onSnapshot(snapshot => {
+            
+            let pendingCount = 0;
+
+            snapshot.docChanges().forEach(change => {
+                // Jeśli dodano NOWY dokument do bazy danych
+                if (change.type === "added") {
+                    const data = change.doc.data();
+                    
+                    // Jeśli to nowa opinia oczekująca i strona nie jest w trakcie pierwszego włączania
+                    if (data.status === 'pending' && !isInitialLoad) {
+                        const progres = (data.koniecElo || 0) - (data.startElo || 0);
+                        ntfy(
+                            `🔔 Nowa opinia od ${data.nick || "Anonim"}!`,
+                            `Klient dodał opinię (${data.service || "START"}). Progres: +${progres} ELO. Wejdź do panelu, aby ją zaakceptować.`
+                        );
+                    }
+                }
+            });
+
+            // Po przejrzeniu pierwszego rzutu danych, wyłączamy flagę ładowania początkowego
+            isInitialLoad = false;
+
+            // Filtrujemy i renderujemy opinie dla aktualnie wybranej zakładki
+            renderData(snapshot);
+        }, error => {
+            console.error("[FIREBASE] Błąd nasłuchiwania na żywo:", error);
+            document.getElementById("list").innerText = "Błąd autoryzacji lub braku dostępu do bazy.";
+        });
+}
+
+// --- ZAKŁADKI I RENDEROWANIE ---
+function setTab(tabName) {
+    currentTab = tabName;
+    
+    // Zmiana klas aktywności przycisków
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.getElementById(`tab-${tabName}`).classList.add("active");
+
+    // Ponowne pobranie i wymuszenie odświeżenia widoku
+    db.collection("testimonials").orderBy("createdAt", "desc").get().then(snapshot => {
+        renderData(snapshot);
+    });
+}
+
+function renderData(snapshot) {
+    const listDiv = document.getElementById("list");
+    let html = "";
+    let count = 0;
+
+    snapshot.forEach(doc => {
+        const t = doc.data();
+        // Filtrujemy tylko dokumenty odpowiadające obecnej zakładce
+        if (t.status !== currentTab) return;
+        
+        count++;
+        const id = doc.id;
+        const start = Number(t.startElo ?? 0);
+        const koniec = Number(t.koniecElo ?? 0);
+        const progres = koniec - start;
+
+        let starsStr = "";
+        for (let i = 0; i < 5; i++) {
+            starsStr += i < (t.rating || 5) ? "★" : "☆";
+        }
+
+        html += `
+            <div class="card">
+                <div style="display: flex; align-items: center;">
+                    <strong>${t.nick || "Anonim"}</strong>
+                    <div class="stars">${starsStr}</div>
+                </div>
+                <div class="meta">
+                    <span class="service-badge">${t.service || "Brak"}</span>
+                    <span class="elo-tag">Start: <strong>${start}</strong></span>
+                    <span class="elo-tag">Koniec: <strong>${koniec}</strong></span>
+                    <span class="elo-tag" style="color: #4ade80;">Progres: <strong>+${progres} ELO</strong></span>
+                </div>
+                <div class="review">"${t.review || "Brak treści."}"</div>
+                <div class="actions">
+                    ${currentTab === 'pending' ? `<button class="approve" onclick="updateStatus('${id}', 'approved')"><i class="fa-solid fa-check"></i> Approve</button>` : ''}
+                    ${currentTab === 'pending' ? `<button class="reject" onclick="updateStatus('${id}', 'rejected')"><i class="fa-solid fa-ban"></i> Reject</button>` : ''}
+                    <button class="delete" onclick="deleteReview('${id}')"><i class="fa-solid fa-trash"></i> Delete</button>
+                </div>
+            </div>
+        `;
+    });
+
+    if (count === 0) {
+        listDiv.innerHTML = `<p style="text-align:center; padding: 40px 0;">Brak opinii w sekcji "${currentTab.toUpperCase()}".</p>`;
+    } else {
+        listDiv.innerHTML = html;
+    }
+}
+
+// --- AKCJE MODERATORA (ZMIANA STATUSU / USUWANIE) ---
+function updateStatus(id, newStatus) {
+    db.collection("testimonials").doc(id).update({
+        status: newStatus
+    })
+    .then(() => {
+        console.log(`Zmieniono status opinii ${id} na ${newStatus}`);
+    })
+    .catch(error => alert("Błąd zmiany statusu: " + error.message));
+}
+
+function deleteReview(id) {
+    if (confirm("Czy na pewno chcesz bezpowrotnie usunąć tę opinię z bazy danych?")) {
+        db.collection("testimonials").doc(id).delete()
+            .then(() => console.log(`Usunięto opinię ${id}`))
+            .catch(error => alert("Błąd usuwania: " + error.message));
+    }
+}
+
+// --- ZABEZPIECZONA FUNKCJA FACEIT (WYCISZONA LOKALNIE) ---
+async function loadFaceitElo() {
+    try {
+        const res = await fetch("/api/faceit");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const cs2 = data.payload?.games?.cs2 || data.payload?.games?.csgo;
+        const elo = cs2?.faceit_elo || "—";
+        const el = document.getElementById("eloStatusText");
+        if (el) el.innerText = elo;
+    } catch (e) {
+        // Zmieniono na warn, aby lokalnie (Failed to fetch) nie wywalało błędu w konsoli
+        console.warn("[FACEIT] Brak połączenia z API Faceit (lokalny brak routingu /api/faceit):", e.message);
+        const el = document.getElementById("eloStatusText");
+        if (el) el.innerText = "—";
+    }
+}
+
+// Wywołanie Faceit API bez blokowania kodu
+document.addEventListener("DOMContentLoaded", () => {
+    loadFaceitElo();
+    setInterval(loadFaceitElo, 60000);
+});
+</script>
+
+</body>
+</html>
